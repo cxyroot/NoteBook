@@ -1,0 +1,33 @@
+1.安装hive
+	（1）解压tar包
+	（2）修改hive-env.sh
+		修改HADOOP_HOME和HIVE_CONF_DIR
+2.替换数据库为mysql
+	（1）先查询卸载原有的mysql数据库
+		rpm -qa|grep mysql
+		sudo rpm -e --nodeps mysql-libs-5.1.73-7.el6.x86_64
+	（2）安装server（记得用sudo）
+		解压unzip mysql-libs.zip
+		安装mysql服务端：sudo rpm -ivh MySQL-server-5.6.24-1.el6.x86_64.rpm
+		查询mysql的运行状态：sudo service mysql status
+		启动mysql的服务端：sudo service mysql start
+	（3）安装clinet（修改密码）：
+		sudo rpm -ivh MySQL-client-5.6.24-1.el6.x86_64.rpm
+		登陆mysql修改密码：mysql -uroot -p密码
+		修改mysql的密码：set password = password（‘000000’）;
+	（4）修改mysql的权限
+		修改mysql数据库下的user表
+		update user set host='%' where host='localhost';
+		delete from user where Host='hadoop102';
+		delete from user where Host='127.0.0.1';
+		delete from user where Host='::1';
+		（记得flush privileges）
+	（5）拷贝mysql的jdbc的驱动到hive的lib
+		cp mysql-connector-java-5.1.27-bin.jar /opt/module/hive/lib/（注意这块拷贝的是jar包）
+	（6）修改hive的配置文件
+		创建hive-site.xml
+		添加关于mysql的四个字符串的配置
+		检测是否可以多窗口访问hive
+3.在mysql查看metastore数据库
+	重点关注DBS，TBLS，COLUMN_V2表
+
