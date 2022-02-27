@@ -65,7 +65,25 @@ server.4=hadoop104:2888:3888
 
 # 4zookeeper命令行操作
 
+启动zk客户端
+
+```shell
+bin/zkCli.sh
+```
+
 bin/zkCli.sh  启动zk客户端
+
+| 命令基本语法      | 功能描述                                           |
+| ----------------- | -------------------------------------------------- |
+| help              | 显示所有操作命令                                   |
+| ls path [watch]   | 使用 ls 命令来查看当前znode中所包含的内容          |
+| ls2 path  [watch] | 查看当前节点数据并能看到更新次数等数据             |
+| create            | 普通创建  -s 含有序列  -e 临时（重启或者超时消失） |
+| get path  [watch] | 获得节点的值                                       |
+| set               | 设置节点的具体值                                   |
+| stat              | 查看节点状态                                       |
+| delete            | 删除节点                                           |
+| rmr               | 递归删除节点                                       |
 
 ls  /
 
@@ -247,11 +265,95 @@ public class ZooKeeperApi {
 
 
 
+# 监听服务器节点动态上下线案例
+
+```shell
+[zk: localhost:2181(CONNECTED) 10] create /servers "servers" Created /servers
+```
 
 
 
+代码监听
 
+```java
+package kafka;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.zookeeper.WatchedEvent;
+import org.apache.zookeeper.Watcher;
+import org.apache.zookeeper.ZooKeeper;
+
+public class DistributeClient {
+	private static String connectString = "192.168.34.102:2181,192.168.34.103:2181,192.168.34.104:2181";
+	
+	private static int sessionTimeout = 2000;
+	private ZooKeeper zk = null;
+	private String parentNode = "/servers";
+
+	// 创建到zk的客户端连接
+	public void getConnect() throws IOException {
+		Watcher watcher =  new Watcher() {
+
+			public void process(WatchedEvent event) {
+				// 再次启动监听
+				try {
+					getServerList();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			
+		};
+		
+		
+		zk = new ZooKeeper(connectString, sessionTimeout,watcher,Boolean.TRUE);
+	}
+
+	// 获取服务器列表信息
+	public void getServerList() throws Exception {
+
+		// 1获取服务器子节点信息，并且对父节点进行监听
+		List<String> children = zk.getChildren(parentNode, true);
+
+		// 2存储服务器信息列表
+		ArrayList<String> servers = new ArrayList<String>();
+
+		// 3遍历所有节点，获取节点中的主机名称信息
+		for (String child : children) {
+			byte[] data = zk.getData(parentNode + "/" + child, false, null);
+
+			servers.add(new String(data));
+		}
+
+		// 4打印服务器列表信息
+		System.out.println(servers);
+	}
+
+	// 业务功能
+	public void business() throws Exception {
+
+		System.out.println("client is working ...");
+		Thread.sleep(Long.MAX_VALUE);
+	}
+
+	public static void main(String[] args) throws Exception {
+
+		// 1获取zk连接
+		DistributeClient client = new DistributeClient();
+		client.getConnect();
+
+		// 2获取servers的子节点信息，从中获取服务器信息列表
+		client.getServerList();
+
+		// 3业务进程启动
+		client.business();
+	}
+	
+}
+```
 
 
 

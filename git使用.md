@@ -2,16 +2,23 @@
 
 ### …or create a new repository on the command line
 
+```
+git更新强制覆盖本地:
+git pull时出现冲突 放弃本地修改，使远程库内容强制覆盖本地代码
+git fetch --all //只是下载代码到本地，不进行合并操作
+git reset --hard origin/master //把HEAD指向最新下载的版本
+```
+
 
 
 ```
 echo "# BigDate" >> README.md
-git init
-git add README.md
-git commit -m "first commit"
+git init //初始化
+git add README.md  //添加修改文件
+git commit -m "first commit" //提交代码注释
 git branch -M master
-git remote add origin https://github.com/cxyroot/BigDate.git
-git push -u origin master
+git remote add origin https://github.com/cxyroot/BigDate.git //链接远程分支
+git push -u origin master //推送文件到 master
               
 ```
 
@@ -46,7 +53,7 @@ https://github.com/cxyroot/Tomcat8Src/blob/master/bin/configtest.sh#L13
 
 小写英文字母t
 
-
-
 ```
+
+
 
