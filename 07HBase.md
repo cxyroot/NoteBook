@@ -356,7 +356,21 @@ http://192.168.10.102:16010/master-status
 
 # 5hbase和hadoop集成
 
+# 6：hbase的shell 
 
+```
+help  帮助
+
+list 
+
+bin/hbase shell
+
+create  ‘student’,‘info’
+
+describe  ‘student’
+
+put 'student','1001','info:sex','male'
+```
 
 
 

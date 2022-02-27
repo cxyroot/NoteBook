@@ -49,7 +49,11 @@ java.util.concurrent.locks
 
 ## 5多线程
 
-线程 操作 资源类
+线程 
+
+操作 
+
+资源类
 
 ```java
 package com.google;
