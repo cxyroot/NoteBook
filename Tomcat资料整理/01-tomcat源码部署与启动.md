@@ -1,8 +1,10 @@
-# 1：下载tomcat
+# 1：下载Tomcat8.0
 
 官网下载
 
-地址 ：
+地址 ：https://tomcat.apache.org/
+
+历史版本下载：https://archive.apache.org/dist/tomcat/
 
 # 2：配置pom.xml文件
 
@@ -95,7 +97,7 @@ pom文件
 
 # 4：以源码的方式启动tomcat
 
-找到Bootstrap类，启动。
+找到Bootstrap类，找到main方法，使用Java程序的方式启动启动。
 
 
 

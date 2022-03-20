@@ -206,11 +206,11 @@ group.initial.rebalance.delay.ms=0
 
 ### 默认启动：
 
-​				bin/zkServer.sh start
+​	 bin/zkServer.sh start
 
 ### 启动命令
 
-​				bin/kafka-server-start.sh  -daemon  config/server.properties
+​         bin/kafka-server-start.sh  -daemon  config/server.properties
 
 ## 8群起脚本
 
@@ -319,7 +319,7 @@ Kafka 中消息是以 topic 进行分类的，生产者生产消息，消费者�
 
 
 
-## 6kafka生产者
+# 6kafka生产者
 
 ​			分区策略	1为啥要分区2分区的原则
 
@@ -343,7 +343,7 @@ Exactly Once语义
 
 ​			
 
-## 7kafka消费者
+# 7kafka消费者
 
 消费方式
 

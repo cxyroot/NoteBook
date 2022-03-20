@@ -61,5 +61,14 @@ rpm -qa|grep rsync
 find 目录名 -name 文件名 
 #按照文件名称,查找	文件名为xsync
 find / -name xsync
+
+
+
+#安装ntp服务器
+yum install -y ntp ntpdate
+#启动ntp服务器
+/etc/init.d/ntpd start
+#重启
+reboot
 ```
 

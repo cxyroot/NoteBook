@@ -622,4 +622,6 @@ public interface HttpServletResponse extends ServletResponse {
 
 
 
-# 3：启示s
+# 3：启示
+
+这个类里面有最全的状态码标示。
