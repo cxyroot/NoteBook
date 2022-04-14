@@ -199,6 +199,125 @@ load data local inpath '/home/soft/datas/student.txt' into table student;
 
 # 04数据库的基本使用
 
+## 安装MySql
+
+```shell
+#先查看是否安装mysql
+rpm -qa|grep mysql
+#卸载
+rpm -e --nodeps mysql-libs-5.1.73-7.el6.x86_64
+#解压mysql-libs.zip
+unzip mysql-libs.zip
+ls
+mysql-libs.zip
+mysql-libs
+#进入my-libs
+cd ./my-libs
+#查看mysql-lib文件
+cd /home/soft/tar/mysql-libs
+[root@hadoop102 mysql-libs]# ll
+total 76052
+-rw-r--r--. 1 root root 18509960 Mar 26  2015 MySQL-client-5.6.24-1.el6.x86_64.rpm
+drwxr-xr-x. 4 root root     4096 Oct 23  2013 mysql-connector-java-5.1.27
+-rw-r--r--. 1 root root  3575135 Dec  1  2013 mysql-connector-java-5.1.27.tar.gz
+-rw-r--r--. 1 root root 55782196 Mar 26  2015 MySQL-server-5.6.24-1.el6.x86_64.rpm
+#安装mysql服务器
+rpm -ivh MySQL-server-5.6.24-1.el6.x86_64.rpm
+#查看安装mysql中产生的随机密码
+cat /root/.mysql_secret
+#查看安装mysql后的状态
+service mysql status
+[root@hadoop102 mysql-libs]# service mysql status
+MySQL is not running                                       [FAILED]
+#启动mysql服务器
+service mysql start
+[root@hadoop102 mysql-libs]# service mysql status
+MySQL running (1822)
+```
+
+安装MySql
+
+```shell
+#安装mysql客户端
+rpm -ivh MySQL-client-5.6.24-1.el6.x86_64.rpm
+#链接mysql
+mysql -uroot -p (随机密码 cat /root/.mysql_secret)
+#修改密码
+SET PASSWORD=PASSWORD('123456');
+#退出mysql
+exit
+```
+
+## 使用MySQL中user表中主机配置
+
+```shell
+#进入mysql
+mysql -uroot -p123456
+#显示数据库
+show databases;
+#使用数据库
+use mysql;
+#展示mysql数据库中的所有表
+show databases;
+#展示user表结构
+desc user;
+#查询user表
+select User, Host, Password from user;
+#修改user表。把host表内容修改为%
+update user set host='%' where host='localhost';
+#删除root用户的其他host
+mysql>delete from user where Host='hadoop102';
+mysql>delete from user where Host='127.0.0.1';
+mysql>delete from user where Host='::1';
+#刷新
+mysql>flush privileges;
+#退出
+quit;
+```
+
+## hive元数据配置到Mysql
+
+```shell
+#解压
+tar -zxvf mysql-connector-java-5.1.27.tar.gz
+#复制驱动
+cp mysql-connector-java-5.1.27-bin.jar  /home/soft/hive/lib/
+#在/home/soft/hive/config/创建hive-site.xml
+touch hive-site.xml
+
+#编辑hive-site.xml
+
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="configuration.xsl"?>
+<configuration>
+    <property>
+        <name>javax.jdo.option.ConnectionURL</name>
+        <value>jdbc:mysql://hadoop102:3306/metastore?createDatabaseIfNotExist=true</value>
+        <description>JDBC connect string for a JDBC metastore</description>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionDriverName</name>
+        <value>com.mysql.jdbc.Driver</value>
+        <description>Driver class name for a JDBC metastore</description>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionUserName</name>
+        <value>root</value>
+        <description>username to use against metastore database</description>
+    </property>
+
+    <property>
+        <name>javax.jdo.option.ConnectionPassword</name>
+        <value>123456</value>
+        <description>password to use against metastore database</description>
+    </property>
+</configuration>
+```
+
+
+
 mysql  -uroot -p123456
 
 mysql表中主机配置
@@ -214,11 +333,13 @@ mysql表中主机配置
 +------+------+-------------------------------------------+
 1 row in set (0.00 sec)
 
-## 配置hive元数据到mysql
-
-​		service mysql status    查看本机 mysql启动状态.
+## 配置hive元数据到MySQL
 
 
+
+## HiveJDBC访问
+
+service mysql status    查看本机 mysql启动状态
 
 bin/hive -e  'select *from student;'  不启动hive,直接查询结果
 
