@@ -337,6 +337,21 @@ mysql表中主机配置
 
 
 
+```
+
+bin/hiveserver2
+
+
+bin/beeline
+
+
+!connect jdbc:hive2://hadoop102:10000
+root
+回车
+```
+
+
+
 ## HiveJDBC访问
 
 service mysql status    查看本机 mysql启动状态
@@ -357,9 +372,12 @@ dfs  -lsr /user;
 
 !ls  /opt;
 
-## 查看hive 历史运行的命令
+## 查看hive 历史运行的命令	
 
-​		[root@node01 ~]# cat .hivehistory 
+```shell
+[root@node01 ~]# cat .hivehistory 
+
+```
 
 ## 显示当前数据库，以及查询表的头信息配置
 
@@ -379,6 +397,34 @@ dfs  -lsr /user;
 ## 查看hive所有的配置信息
 
 set;    -- 查看hive所有的配置信息
+
+```xml
+<property>
+	<name>hive.cli.print.header</name>
+	<value>true</value>
+</property>
+
+<property>
+	<name>hive.cli.print.current.db</name>
+	<value>true</value>
+</property>
+```
+
+
+
+
+
+```xml
+<property>
+<name>hive.metastore.warehouse.dir</name>
+<value>/user/hive/warehouse</value>
+<description>location of default database for the warehouse</description>
+</property>
+```
+
+
+
+
 
 ## 修改hive中的默认日志配置
 
@@ -407,25 +453,34 @@ hive.log.file=hive.log
 
 集合数据类型
 
-
-
-
-
 # 07DDL数据定义
 
 ## 创建数据库
 
-​	创建数据库
+```
+hdfs safemode -get
+
+bin/hiveserver2
+
+
+bin/beeline
+
+!connect jdbc:hive2://hadoop102:10000
+root
+回车
+```
+
+  创建数据库
 
 ​		create database db_hive;
 
    创建数据库，如果存在则不创建
 
-​    create database if not exists db_hive;
+​    	create database if not exists db_hive;
 
 ​	创建数据库，指定创建位置
 
-​    create database if not exists db_hive2
+​    		create database if not exists db_hive2
 
 ​			location ' /db_hive2.db'  ---/为hadoop下的目录，查看地址为[http://192.168.10.120:50070](http://192.168.10.120:50070/)
 
@@ -433,17 +488,17 @@ hive.log.file=hive.log
 
 ​	  只能修改配置信息，不能修改数据库名和数据库所在位置。
 
-​		desc database db_hive
+​		 desc database db_hive
 
 ​	  在mysql中查看修改结果
 
 ​     	desc database extended db_hive
 
-查询数据库
+​	 查询数据库
 
-​	show databases;
+​		show databases;
 
- 	show databases like 'db*'
+​		show databases like 'db*'
 
 ​     显示数据库信息。
 
@@ -475,6 +530,18 @@ hive.log.file=hive.log
 
 ```sql
 create table if not exists student2(
+	id int, 
+    name string
+)
+row format delimited fields terminated by '\t'
+stored as textfile
+location '/user/hive/warehouse/student';
+```
+
+​	
+
+```sql
+create table if not exists student(
 id int, name string
 )
 row format delimited fields terminated by '\t'
@@ -482,7 +549,16 @@ stored as textfile
 location '/user/hive/warehouse/student';
 ```
 
-​	迁移数据，相当于生成备份表
+```sql
+create table if not exists student(
+id int, name string
+)
+row format delimited fields terminated by '\t'
+stored as textfile
+location '/user/hive/warehouse/student2';
+```
+
+迁移数据，相当于生成备份表
 
 ```sql
 create table if not exists student3
@@ -492,7 +568,7 @@ as select id, name from student;
 ​	只创建表不迁移数据。
 
 ```sql
-create table if not exists student4 like student;
+create table if not exists · like student;
 ```
 
 ​	删除表及数据
@@ -509,12 +585,11 @@ create table if not exists student4 like student;
 
 ```sql
 create external table if not exists dept(
-deptno int,
-dname string,
-loc int
+    deptno int,
+    dname string,
+    loc int
 )
 row format delimited fields terminated by '\t';
-
 ```
 
 ### 分区表
@@ -523,7 +598,9 @@ row format delimited fields terminated by '\t';
 
 ```sql
 create table dept_partition(
-               deptno int, dname string, loc string
+    deptno int, 
+    dname string, 
+    loc string
  ) partitioned by (month string)
  row format delimited fields terminated by '\t';
 ```
@@ -539,33 +616,43 @@ create table dept_partition(
 ​		加载本地文件到hive
 
 ```sql
-load data local input /opt/home/soft/student.txt into table student
+load data local input /opt/home/soft/student.txt into table student;
 ```
 
 ​	   加载hdfs文件到hive    
 
-```
-dfs -put /opt/student.txt / --上传数据到hdfs中
+```sql
+hadoop fs -put /home/soft/student.txt  / --上传数据到hdfs中
+
+create table student(id string, name string) row format delimited fields terminated by '\t';
+
+
+
+load data local inpath '/home/soft/student.txt' into table default.student;
+load data local inpath '本地文件地址' into table 数据库名称.数据库表名称
+
+load data local inpath '/home/soft/student.txt' into table db_hive.student;
+
 load data input '/student.txt' into table student;
 ```
 
   加载数据覆盖表中已有数据 --overwrite
 
 ```sql
-load data local input /opt/home/soft/student.txt overwrite into table student
+load data local input /home/soft/student.txt overwrite into table student
 ```
 
 创建分区表
 
 ```sql
-create table student(
+create table student4(
      deptno int, dname string
  ) partitioned by (month string)
  row format delimited fields terminated by '\t';
 ```
 
 ```sql
-insert into table student partition(month ='2019') values(100,'张三'，);
+insert into table student partition(month ='2019') values(100,'张三');
 ```
 
 ```sql
@@ -583,16 +670,26 @@ select id,name from student where month='201709'
 location 加载数据
 
 ```sql
-create table student2
-     deptno int, dname string
- ) row format delimited fields terminated by '\t'
- location '/user/hive/warehouse/student2';
+create table student2(
+    deptno int, 
+    dname string
+)row format delimited fields terminated by '\t'
+location '/user/hive/warehouse/student2';
+
+create table student3(
+    deptno int, 
+    dname string
+)row format delimited fields terminated by '\t'
+location '/student.txt';
+
 ```
 
 上传数据到hdfs上。
 
 ```
-dfs -put /opt/student.txt   /user/hive/warehouse/student2 ;
+dfs -put /opt/student.txt   /user/hive/warehouse/student2;
+
+dfs -put /home/soft/student.txt   /user/hive/warehouse/student2;
 ```
 
 
