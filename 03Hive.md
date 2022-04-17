@@ -530,93 +530,135 @@ root
 
 ```sql
 create table if not exists student2(
-	id int, 
+    id int,
     name string
 )
 row format delimited fields terminated by '\t'
 stored as textfile
-location '/user/hive/warehouse/student';
+location '/user/hive/warehouse/db_hive.db/student2';
+
+#删除hadoop里面的目录文件
+hadoop fs -rm /user/hive/warehouse/student2
+#删除hadoop里面的目录文件(加入了-r 选项 循环删除)
+hadoop fs -rm -r /user
+/*location 表示的是数据在hadoop的位置**/
+```
+
+ 
+
+```sql
+
+#删除表及数据# 迁移数据，相当于生成备份表
+create table if not exists student
+as select id, name from student2;
+
+# 只创建表不迁移数据。
+create table if not exists student4 like student;
+
+#查看详情
+desc formatted student2;
+
+#删除表及数据
+drop table student;
+
+#
+hadoop fs -put ./student.txt /student
 ```
 
 ​	
 
-```sql
-create table if not exists student(
-id int, name string
-)
-row format delimited fields terminated by '\t'
-stored as textfile
-location '/user/hive/warehouse/student';
-```
-
-```sql
-create table if not exists student(
-id int, name string
-)
-row format delimited fields terminated by '\t'
-stored as textfile
-location '/user/hive/warehouse/student2';
-```
-
-迁移数据，相当于生成备份表
-
-```sql
-create table if not exists student3
-as select id, name from student;
-```
-
-​	只创建表不迁移数据。
-
-```sql
-create table if not exists · like student;
-```
-
-​	删除表及数据
-
-```sql
- drop table student;
-```
-
-### 外部表
+外部表
 
 外部表：项目组可以同时操作一个表，主要进行查询。	
 
-创建外部表。 -- external
+创建外部表。 
 
 ```sql
-create external table if not exists dept(
-    deptno int,
-    dname string,
-    loc int
+hadoop fs -mkdir /student
+hadoop fs -put  /home/soft/student.txt /student
+create table student6(
+    id int,
+    name string
 )
-row format delimited fields terminated by '\t';
+row format delimited fields terminated by '\t'
+stored as textfile
+location '/student';
+drop table student6;
+
+
+-- external
+hadoop fs -mkdir /student
+hadoop fs -put  /home/soft/student.txt /student
+create external table student6(
+    id int,
+    name string
+)
+row format delimited fields terminated by '\t'
+stored as textfile
+location '/student';
 ```
+
+### 管理表和内部表转换
+
+
 
 ### 分区表
 
-创建分区表。--partitioned by (month string)
+创建分区表。
 
 ```sql
+-- partitioned by (month string)
+-- 创建一级分区表
 create table dept_partition(
     deptno int, 
     dname string, 
     loc string
  ) partitioned by (month string)
  row format delimited fields terminated by '\t';
+ #加载数据到分区表
+load data local input '/home/soft/datas/dept.txt'
+into table default.dept_partition partition(month='201709')
+
+# 指定查询分区表中的数据 
+select * from dept_partition where month = '201709';
+
+# 联合查询
+select * from dept_partition where month = '201709'
+union
+select * from dept_partition where month = '201708';
+
+#增加分区
+
+
+#删除分区
+
+
+#创建二级分区表
+create table dept_partition2(
+    deptno int, 
+    dname string, 
+    loc string
+ ) partitioned by (month string,day string)
+ row format delimited fields terminated by '\t';
+ 
+ #分区表需要注意的事情
+ HDFS中有数据
+ hive中创建了表但是没有数据
+ 
+ #haiv 只是改变了HDFS中数据的表现样式
+ 
 ```
 
-加载数据到分区表
-
-
-
-# 08DML数据库定义
+# 08DML数据库定义  
 
 ## 数据导入
 
-​		加载本地文件到hive
+​	 加载本地文件到hive
 
 ```sql
-load data local input /opt/home/soft/student.txt into table student;
+load data local inpath /home/soft/student.txt into student; 
+load data local inpath '/home/soft/student.txt' into table default.student;
+load data local inpath '本地文件地址' into table 数据库名称.数据库表名称 -- local 表示从linux系统上上传
 ```
 
 ​	   加载hdfs文件到hive    
@@ -626,14 +668,20 @@ hadoop fs -put /home/soft/student.txt  / --上传数据到hdfs中
 
 create table student(id string, name string) row format delimited fields terminated by '\t';
 
+load data inpath '/student.txt' into table student;
 
+------------------------------------------------------------------------------------------------------
+hadoop fs -mkdir /student  -- 在hdfs下创建stdent目录  注意目录的权限问题
+hadoop fs -put  /home/soft/student.txt /student --上传本地/home/soft/student.txt 文件到 hdfs /student目录下。
 
-load data local inpath '/home/soft/student.txt' into table default.student;
-load data local inpath '本地文件地址' into table 数据库名称.数据库表名称
+create table student6(
+    id int,
+    name string
+)
+row format delimited fields terminated by '\t'
+stored as textfile
+location '/student';
 
-load data local inpath '/home/soft/student.txt' into table db_hive.student;
-
-load data input '/student.txt' into table student;
 ```
 
   加载数据覆盖表中已有数据 --overwrite
@@ -645,6 +693,7 @@ load data local input /home/soft/student.txt overwrite into table student
 创建分区表
 
 ```sql
+-- partitioned
 create table student4(
      deptno int, dname string
  ) partitioned by (month string)
@@ -696,17 +745,9 @@ dfs -put /home/soft/student.txt   /user/hive/warehouse/student2;
 
 ## 数据导出
 
-
-
 insert 导出数据。
 
-
-
 ## 清除表中的数据
-
-
-
-
 
 
 Hive是基于Hadoop的一个数据仓库工具，可以将结构化的数据文件映射为一张数据库表，并提供简单的sql查询功能，可以将sql语句转换为MapReduce任务进行运行。HBase是Hadoop的数据库，一个分布式、可扩展、大数据的存储。单个的从字面意思上或许很难看出二者的区别，别急，下面我们就对二者做个详细的介绍。
