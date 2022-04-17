@@ -333,17 +333,13 @@ mysql表中主机配置
 +------+------+-------------------------------------------+
 1 row in set (0.00 sec)
 
-## 配置hive元数据到MySQL
-
-
+## 配置hive元数据到MySQL（重要）
 
 ```
 
 bin/hiveserver2
 
-
 bin/beeline
-
 
 !connect jdbc:hive2://hadoop102:10000
 root
@@ -653,17 +649,17 @@ create table dept_partition2(
 
 ## 数据导入
 
-​	 加载本地文件到hive
+#### 	   第一种方式向hive导入数据
+
+​		加载本地文件到hive
 
 ```sql
+-- 加载本地文件到hive
 load data local inpath /home/soft/student.txt into student; 
 load data local inpath '/home/soft/student.txt' into table default.student;
 load data local inpath '本地文件地址' into table 数据库名称.数据库表名称 -- local 表示从linux系统上上传
-```
 
-​	   加载hdfs文件到hive    
-
-```sql
+--- 加载hdfs文件到hive    
 hadoop fs -put /home/soft/student.txt  / --上传数据到hdfs中
 
 create table student(id string, name string) row format delimited fields terminated by '\t';
@@ -682,63 +678,136 @@ row format delimited fields terminated by '\t'
 stored as textfile
 location '/student';
 
-```
 
-  加载数据覆盖表中已有数据 --overwrite
-
-```sql
+--   加载数据覆盖表中已有数据  overwrite
 load data local input /home/soft/student.txt overwrite into table student
 ```
 
-创建分区表
+####   第二种方式向hive导入数据
+
+insert 方式进行数据导入
 
 ```sql
+-- 创建分区表
 -- partitioned
-create table student4(
-     deptno int, dname string
- ) partitioned by (month string)
- row format delimited fields terminated by '\t';
+create table student7(
+     id int, name string
+) partitioned by (month string)
+row format delimited fields terminated by '\t';
+
+insert into table student7 partition(month ='201709') values(100,'张三');
+#执行 这个语句会产生启动map
+/**
+0: jdbc:hive2://hadoop102:10000> insert into table student7 partition(month ='201709') values(100,'张三');
+INFO  : Number of reduce tasks is set to 0 since there's no reduce operator
+INFO  : number of splits:1
+INFO  : Submitting tokens for job: job_1649984531147_0001
+INFO  : The url to track the job: http://hadoop103:8088/proxy/application_1649984531147_0001/
+INFO  : Starting Job = job_1649984531147_0001, Tracking URL = http://hadoop103:8088/proxy/application_1649984531147_0001/
+INFO  : Kill Command = /home/soft/hadoop-2.7.2/bin/hadoop job  -kill job_1649984531147_0001
+INFO  : Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+INFO  : 2022-04-15 02:12:56,326 Stage-1 map = 0%,  reduce = 0%
+INFO  : 2022-04-15 02:13:01,466 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 2.11 sec
+INFO  : MapReduce Total cumulative CPU time: 2 seconds 110 msec
+INFO  : Ended Job = job_1649984531147_0001
+INFO  : Stage-4 is selected by condition resolver.
+INFO  : Stage-3 is filtered out by condition resolver.
+INFO  : Stage-5 is filtered out by condition resolver.
+INFO  : Moving data to: hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student7/month=201709/.hive-staging_hive_2022-04-15_02-12-49_377_6928154102701663989-1/-ext-10000 from hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student7/month=201709/.hive-staging_hive_2022-04-15_02-12-49_377_6928154102701663989-1/-ext-10002
+INFO  : Loading data to table db_hive.student7 partition (month=201709) from hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student7/month=201709/.hive-staging_hive_2022-04-15_02-12-49_377_6928154102701663989-1/-ext-10000
+INFO  : Partition db_hive.student7{month=201709} stats: [numFiles=1, numRows=1, totalSize=7, rawDataSize=6]
+No rows affected (13.349 seconds)
+*/
+
+# 导入数据 （备份数据）
+insert overwrite table student7 partition(month='201708') select id,name from student7 where month='201709';
+/**
+执行过程
+0: jdbc:hive2://hadoop102:10000> insert overwrite table student7 partition(month='201708') select id,name from student7 where month='201709';
+
+INFO  : Number of reduce tasks is set to 0 since there's no reduce operator
+INFO  : number of splits:1
+INFO  : Submitting tokens for job: job_1649984531147_0003
+INFO  : The url to track the job: http://hadoop103:8088/proxy/application_1649984531147_0003/
+INFO  : Starting Job = job_1649984531147_0003, Tracking URL = http://hadoop103:8088/proxy/application_1649984531147_0003/
+INFO  : Kill Command = /home/soft/hadoop-2.7.2/bin/hadoop job  -kill job_1649984531147_0003
+INFO  : Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+INFO  : 2022-04-15 02:16:54,995 Stage-1 map = 0%,  reduce = 0%
+INFO  : 2022-04-15 02:16:59,092 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 1.0 sec
+INFO  : MapReduce Total cumulative CPU time: 1 seconds 0 msec
+INFO  : Ended Job = job_1649984531147_0003
+INFO  : Stage-4 is selected by condition resolver.
+INFO  : Stage-3 is filtered out by condition resolver.
+INFO  : Stage-5 is filtered out by condition resolver.
+INFO  : Moving data to: hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student7/month=201708/.hive-staging_hive_2022-04-15_02-16-48_516_7282749969946638844-1/-ext-10000 from hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student7/month=201708/.hive-staging_hive_2022-04-15_02-16-48_516_7282749969946638844-1/-ext-10002
+INFO  : Loading data to table db_hive.student7 partition (month=201708) from hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student7/month=201708/.hive-staging_hive_2022-04-15_02-16-48_516_7282749969946638844-1/-ext-10000
+INFO  : Partition db_hive.student7{month=201708} stats: [numFiles=1, numRows=1, totalSize=6, rawDataSize=5]
+No rows affected (11.8 seconds)
+0: jdbc:hive2://hadoop102:10000> 
+*/
+# 导入数据
+from student7
+insert overwrite table student7 partition(month='201708') 
+select id,name from student7 where month = '201709'
+insert overwrite table student7 partition(month='201708') 
+select id,name from student7 where month = '201709';
 ```
 
-```sql
-insert into table student partition(month ='2019') values(100,'张三');
-```
+#### 第三种方式向hive导入数据
 
 ```sql
-insert overwrite table student partition(month='201708') select id,name from student where month='201709';
+create table if not exists student8
+as select id,name from student;
+/**
+0: jdbc:hive2://hadoop102:10000> create table if not exists student8
+0: jdbc:hive2://hadoop102:10000> as select id,name from student;
+INFO  : Number of reduce tasks is set to 0 since there's no reduce operator
+INFO  : number of splits:1
+INFO  : Submitting tokens for job: job_1649984531147_0005
+INFO  : The url to track the job: http://hadoop103:8088/proxy/application_1649984531147_0005/
+INFO  : Starting Job = job_1649984531147_0005, Tracking URL = http://hadoop103:8088/proxy/application_1649984531147_0005/
+INFO  : Kill Command = /home/soft/hadoop-2.7.2/bin/hadoop job  -kill job_1649984531147_0005
+INFO  : Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+INFO  : 2022-04-15 02:35:27,125 Stage-1 map = 0%,  reduce = 0%
+INFO  : 2022-04-15 02:35:31,205 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 0.89 sec
+INFO  : MapReduce Total cumulative CPU time: 890 msec
+INFO  : Ended Job = job_1649984531147_0005
+INFO  : Stage-4 is selected by condition resolver.
+INFO  : Stage-3 is filtered out by condition resolver.
+INFO  : Stage-5 is filtered out by condition resolver.
+INFO  : Moving data to: hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/.hive-staging_hive_2022-04-15_02-35-23_664_6886647803983637797-6/-ext-10001 from hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/.hive-staging_hive_2022-04-15_02-35-23_664_6886647803983637797-6/-ext-10003
+INFO  : Moving data to: hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/student8 from hdfs://hadoop102:9000/user/hive/warehouse/db_hive.db/.hive-staging_hive_2022-04-15_02-35-23_664_6886647803983637797-6/-ext-10001
+INFO  : Table db_hive.student8 stats: [numFiles=1, numRows=0, totalSize=0, rawDataSize=0]
+No rows affected (8.649 seconds)
+*/
 ```
 
-```sql
-from student 
-insert overwrite table student partition(month='201708') 
-select id,name from student where month='201709'
-insert overwrite table student partition(month='201708') 
-select id,name from student where month='201709'
-```
+#### 第四种方式向hive导入数据
 
 location 加载数据
 
 ```sql
-create table student2(
+drop table student;
+
+dfs -mkdir /student;
+
+dfs -put /home/soft/student.txt   /student;
+
+create table student(
     deptno int, 
     dname string
 )row format delimited fields terminated by '\t'
-location '/user/hive/warehouse/student2';
+location '/student';
+-- location '/student' 在hdfs 下有一个student文件夹下有student.txt 文件 -- ----http://192.168.175.102:50070/explorer.html#/
 
-create table student3(
-    deptno int, 
-    dname string
-)row format delimited fields terminated by '\t'
-location '/student.txt';
-
-```
-
-上传数据到hdfs上。
-
-```
-dfs -put /opt/student.txt   /user/hive/warehouse/student2;
-
-dfs -put /home/soft/student.txt   /user/hive/warehouse/student2;
+/*
+0: jdbc:hive2://hadoop102:10000> create external table student(
+0: jdbc:hive2://hadoop102:10000>     id int, 
+0: jdbc:hive2://hadoop102:10000>     name string
+0: jdbc:hive2://hadoop102:10000> )row format delimited fields terminated by '\t'
+0: jdbc:hive2://hadoop102:10000> location '/student';
+No rows affected (0.031 seconds)
+*/
 ```
 
 
