@@ -798,7 +798,9 @@ create table student(
     dname string
 )row format delimited fields terminated by '\t'
 location '/student';
--- location '/student' 在hdfs 下有一个student文件夹下有student.txt 文件 -- ----http://192.168.175.102:50070/explorer.html#/
+-- location '/student' 在hdfs 下有一个student文件夹下有student.txt 文件 
+-- http://192.168.175.102:50070/explorer.html# 
+-- http://192.168.175.102:50070/explorer.html#/
 
 /*
 0: jdbc:hive2://hadoop102:10000> create external table student(
@@ -810,14 +812,128 @@ No rows affected (0.031 seconds)
 */
 ```
 
+#### 第五种向hive导入数据
+
+```sql
+-- 
+import table db_hive.student10 from '/export/student';
+/*
+0: jdbc:hive2://hadoop102:10000> import table db_hive.student10 from '/export/student';
+INFO  : Copying data from hdfs://hadoop102:9000/export/student/data to hdfs://hadoop102:9000/export/student/.hive-staging_hive_2022-04-15_03-47-35_673_2921046789811998505-8/-ext-10000
+INFO  : Copying file: hdfs://hadoop102:9000/export/student/data/student.txt
+INFO  : Loading data to table db_hive.student10 from hdfs://hadoop102:9000/export/student/.hive-staging_hive_2022-04-15_03-47-35_673_2921046789811998505-8/-ext-10000
+No rows affected (0.14 seconds)
+*/
+/*第二种写法*/
+import table db_hive.student10 partition(month='201709') from '/export/student';
+```
+
 
 
 ## 数据导出
 
-insert 导出数据。
+#### 第一种方式
+
+insert 导出数据
+
+```sql
+insert overwrite local directory '/home/soft/datas/export/student' 
+select * from student;
+/**
+0: jdbc:hive2://hadoop102:10000> insert overwrite local directory '/home/soft/datas/export/student' 
+0: jdbc:hive2://hadoop102:10000> select * from student;
+INFO  : Number of reduce tasks is set to 0 since there's no reduce operator
+INFO  : number of splits:1
+INFO  : Submitting tokens for job: job_1649984531147_0006
+INFO  : The url to track the job: http://hadoop103:8088/proxy/application_1649984531147_0006/
+INFO  : Starting Job = job_1649984531147_0006, Tracking URL = http://hadoop103:8088/proxy/application_1649984531147_0006/
+INFO  : Kill Command = /home/soft/hadoop-2.7.2/bin/hadoop job  -kill job_1649984531147_0006
+INFO  : Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+INFO  : 2022-04-15 02:55:59,020 Stage-1 map = 0%,  reduce = 0%
+INFO  : 2022-04-15 02:56:04,123 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 1.21 sec
+INFO  : MapReduce Total cumulative CPU time: 1 seconds 210 msec
+INFO  : Ended Job = job_1649984531147_0006
+INFO  : Copying data to local directory /home/soft/datas/export/student from hdfs://hadoop102:9000/tmp/hive/root/2114f150-2589-499b-bdee-b97d0c22ccd2/hive_2022-04-15_02-55-55_365_1596929057137095706-8/-mr-10000
+INFO  : Copying data to local directory /home/soft/datas/export/student from hdfs://hadoop102:9000/tmp/hive/root/2114f150-2589-499b-bdee-b97d0c22ccd2/hive_2022-04-15_02-55-55_365_1596929057137095706-8/-mr-10000
+No rows affected (9.809 seconds)
+0: jdbc:hive2://hadoop102:10000> 
+*/
+
+insert overwrite local directory '/home/soft/datas/export/student1' 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'  -- 格式化输出语句
+select * from student;
+/**
+0: jdbc:hive2://hadoop102:10000> insert overwrite local directory '/home/soft/datas/export/student1' 
+0: jdbc:hive2://hadoop102:10000> ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'
+0: jdbc:hive2://hadoop102:10000> select * from student;
+INFO  : Number of reduce tasks is set to 0 since there's no reduce operator
+INFO  : number of splits:1
+INFO  : Submitting tokens for job: job_1649984531147_0007
+INFO  : The url to track the job: http://hadoop103:8088/proxy/application_1649984531147_0007/
+INFO  : Starting Job = job_1649984531147_0007, Tracking URL = http://hadoop103:8088/proxy/application_1649984531147_0007/
+INFO  : Kill Command = /home/soft/hadoop-2.7.2/bin/hadoop job  -kill job_1649984531147_0007
+INFO  : Hadoop job information for Stage-1: number of mappers: 1; number of reducers: 0
+INFO  : 2022-04-15 02:59:19,400 Stage-1 map = 0%,  reduce = 0%
+INFO  : 2022-04-15 02:59:22,474 Stage-1 map = 100%,  reduce = 0%, Cumulative CPU 0.91 sec
+INFO  : MapReduce Total cumulative CPU time: 910 msec
+INFO  : Ended Job = job_1649984531147_0007
+INFO  : Copying data to local directory /home/soft/datas/export/student1 from hdfs://hadoop102:9000/tmp/hive/root/2114f150-2589-499b-bdee-b97d0c22ccd2/hive_2022-04-15_02-59-14_993_5708696570995345258-8/-mr-10000
+INFO  : Copying data to local directory /home/soft/datas/export/student1 from hdfs://hadoop102:9000/tmp/hive/root/2114f150-2589-499b-bdee-b97d0c22ccd2/hive_2022-04-15_02-59-14_993_5708696570995345258-8/-mr-10000
+No rows affected (9.552 seconds)
+0: jdbc:hive2://hadoop102:10000> 
+*/
+
+insert overwrite directory '/studentexport' 
+ROW FORMAT DELIMITED FIELDS TERMINATED BY '\t'  -- 格式化输出语句
+select * from student;
+```
+
+#### 第二种导出方式
+
+```sql
+dfs -get /下载命令
+```
+
+#### 第三种导出方式
+
+```sql
+-- bin/hive -e '执行的sql' > '路径地址'
+bin/hive -e 'select * from db_hive.student;' > /home/soft/datas/export/stu.txt
+/*
+[root@hadoop102 hive]# bin/hive -e 'select * from db_hive.student;' > /home/soft/datas/export/stu.txt
+
+Logging initialized using configuration in file:/home/soft/hive/conf/hive-log4j.properties
+OK
+Time taken: 0.884 seconds, Fetched: 16 row(s)
+[root@hadoop102 hive]# 
+*/
+```
+
+#### 第四种方式导入数据
+
+```sql
+export table db_hive.student to '/export/student';
+
+一个表构成的组合 数据 和 元数据（_metadata ）
+	
+/*
+0: jdbc:hive2://hadoop102:10000> export table db_hive.student to '/export/student';
+INFO  : Copying data from file:/tmp/root/2114f150-2589-499b-bdee-b97d0c22ccd2/hive_2022-04-15_03-44-16_463_7703447412327772980-8/-local-10000/_metadata to hdfs://hadoop102:9000/export/student
+INFO  : Copying file: file:/tmp/root/2114f150-2589-499b-bdee-b97d0c22ccd2/hive_2022-04-15_03-44-16_463_7703447412327772980-8/-local-10000/_metadata
+INFO  : Copying data from hdfs://hadoop102:9000/student to hdfs://hadoop102:9000/export/student/data
+INFO  : Copying file: hdfs://hadoop102:9000/student/student.txt
+No rows affected (0.15 seconds)
+0: jdbc:hive2://hadoop102:10000> 
+*/
+```
+
+
 
 ## 清除表中的数据
 
+```sql
+truncate table student;
+```
 
 Hive是基于Hadoop的一个数据仓库工具，可以将结构化的数据文件映射为一张数据库表，并提供简单的sql查询功能，可以将sql语句转换为MapReduce任务进行运行。HBase是Hadoop的数据库，一个分布式、可扩展、大数据的存储。单个的从字面意思上或许很难看出二者的区别，别急，下面我们就对二者做个详细的介绍。
 
