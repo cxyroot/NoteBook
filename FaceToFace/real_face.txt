@@ -1,0 +1,26 @@
+1：spring boot的自动装配
+	自动装配是什么及作用
+	springboot的自动装配实际上就是为了从spring.factories文件中获取到对应的需要进行自动装配的类，
+	并生成相应的Bean对象，然后将它们交给spring容器来帮我们进行管理。
+2：spring自动装配的原理
+	启动类上注解的作用
+	@SpringBootApplication
+	这个注解是springboot启动类上的一个注解，是一个组合注解，
+	也就是由其他注解组合起来，它的主要作用就是标记说明这个类是springboot的主配置类，
+	springboot应该运行这个类里面的main()方法来启动程序
+	
+	这个SpringBootApplication注解主要由三个子注解组成：
+		@SpringBootConfiguration
+		@EnableAutoConfiguration
+		@ComponentScan
+3:OOM问题处理流程
+	一、OOM(OutOfMemoryError):
+		对象无法释放或无法被垃圾回收，造成内存浪费，导致程序运行速度减慢，
+		甚至系统崩溃等严重后果，就是内存泄漏。多个内存泄漏造成可使用内存变少，会导致内存溢出。
+		代码问题new 一个很大对象，导致内存溢出。
+		也可能内存真的不足导致内存溢出。
+	二、考虑：
+		1、垃圾回收算法设置是否合理
+		2、年轻代、老年代划分是否合理
+		3、内存泄漏
+4:synchronized和ReentrantLock的区别？

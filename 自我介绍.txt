@@ -1,0 +1,19 @@
+JAVA_HOME
+
+%JAVA_HOME%\bin;
+
+
+MAVEN_HOME
+
+%MAVEN_HOME%\bin
+
+
+您好  我叫曹肖扬  2015年6月来到北京  最近几个项目为 
+使用的技术为 mybatis+coding+docker+spring boot+spring+node.js+vue+MySQL
+教学系统  
+人事管理系统
+咨询管理系统
+
+北京国网电缆精细化管理平台  是北京国网电缆公司下的一个系统  系统主要对
+ 所属的电缆进行管理   一共有13个模块  我负责的模块有  在线检测模块、负荷模块 政治保电模块
+UAP+ActiveMQ+ES+MyBatsi+jdbc+oracle

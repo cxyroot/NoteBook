@@ -1,0 +1,19 @@
+#! /bin/bash
+
+case $1 in
+"start"){
+        for i in hadoop102 hadoop103 hadoop104
+        do
+                echo " --------Æô¶¯ $i Kafka-------"
+                # ÓÃÓÚKafkaManager¼à¿Ø
+                ssh $i "export JMX_PORT=9988 && /home/soft/kafka/bin/kafka-server-start.sh -daemon /home/soft/kafka/config/server.properties "
+        done
+};;
+"stop"){
+        for i in hadoop102 hadoop103 hadoop104
+        do
+                echo " --------Í£Ö¹ $i Kafka-------"
+                ssh $i "/home/soft/kafka/bin/kafka-server-stop.sh stop"
+        done
+};;
+esac
