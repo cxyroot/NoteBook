@@ -1,0 +1,18 @@
+JAVA_HOME
+
+%JAVA_HOME%\bin
+
+
+MAVAEN_HOME
+
+%MAVAEN_HOME%\bin
+
+GRADLE_USER_HOME
+
+D:\JavaTools\GradleUserHome
+
+
+mvn clean install -DskipTests -Pfast
+
+
+npm install -g cnpm --registry=https://registry.npm.taobao.org
