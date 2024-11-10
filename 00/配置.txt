@@ -12,6 +12,8 @@ GRADLE_USER_HOME
 D:\JavaTools\GradleUserHome
 
 
+D:\JavaTools\apache-maven-3.9.0
+
 mvn clean install -DskipTests -Pfast
 
 
